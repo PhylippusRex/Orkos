@@ -1,0 +1,12 @@
+{
+  "name": "orkos",
+  "version": "0.1.0",
+  "description": "An onchain execution agent that enforces self-authored commitments against panic-selling, using Sibyl Memory as the load-bearing recall layer.",
+  "scripts": {
+    "compile": "node scripts/compile.js"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "solc": "^0.8.24"
+  }
+}

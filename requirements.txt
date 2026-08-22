@@ -1,0 +1,3 @@
+sibyl-memory-cli>=0.3.22
+web3>=6.0.0
+pytest>=8.0.0
