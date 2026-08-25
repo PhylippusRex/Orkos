@@ -4,7 +4,7 @@
 
 Built for the [Sibyl Labs Hackathon](https://hack.sibyllabs.org) (Sep 1–10, 2026).
 
-Named for Horkos, the Greek god who punished broken oaths. Orkos isn't a stop-loss —
+Orkos isn't a stop-loss —
 stop-losses execute mechanically on price. Orkos enforces a *rule you set for yourself
 when you were thinking clearly*, and refuses to let panic override it, even when panic
 is holding the keyboard.
