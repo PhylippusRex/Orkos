@@ -53,6 +53,54 @@ def get_contract(w3: Web3, address: str | None = None):
     return w3.eth.contract(address=Web3.to_checksum_address(contract_address), abi=load_abi())
 
 
+def submit_create_vow(
+    asset_address: str,
+    protected_amount: int,
+    floor_price_e8: int,
+    thesis_hash: str,
+    rpc_url: str | None = None,
+    contract_address: str | None = None,
+) -> dict[str, Any]:
+    """
+    Creates a vow ON THE DEPLOYED CONTRACT -- called by the wallet owner
+    (using DEPLOYER_PRIVATE_KEY here since we're using one wallet for both
+    roles, per project setup) in a sober session, before any panic exists.
+    This is the transaction that makes the whole system real on-chain,
+    not just simulated in Python.
+    """
+    private_key = os.environ.get("DEPLOYER_PRIVATE_KEY")
+    if not private_key:
+        raise EnvironmentError("DEPLOYER_PRIVATE_KEY not set.")
+
+    w3 = get_web3(rpc_url)
+    contract = get_contract(w3, contract_address)
+    owner_account = w3.eth.account.from_key(private_key)
+
+    tx = contract.functions.createVow(
+        Web3.to_checksum_address(asset_address), protected_amount, floor_price_e8, bytes.fromhex(thesis_hash.replace("0x", ""))
+    ).build_transaction({
+        "from": owner_account.address,
+        "nonce": w3.eth.get_transaction_count(owner_account.address),
+        "chainId": w3.eth.chain_id,
+    })
+
+    signed = w3.eth.account.sign_transaction(tx, private_key=private_key)
+    tx_hash = w3.eth.send_raw_transaction(signed.raw_transaction)
+    receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
+
+    # vowId is the count *before* this vow was added -- read it from the event log
+    vow_created_logs = contract.events.VowCreated().process_receipt(receipt)
+    vow_id = vow_created_logs[0]["args"]["vowId"] if vow_created_logs else None
+
+    return {
+        "tx_hash": tx_hash.hex(),
+        "status": "success" if receipt.status == 1 else "reverted",
+        "block_number": receipt.blockNumber,
+        "vow_id": vow_id,
+        "owner": owner_account.address,
+    }
+
+
 def submit_release(
     owner_address: str,
     vow_id: int,
